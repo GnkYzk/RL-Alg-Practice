@@ -1,9 +1,10 @@
 class Gridworld():
-    def __init__(self,states,rewards,x_dim,terminal_states,mode="normal",debug=False,):
+    def __init__(self,states,startstate,rewards,x_dim,terminal_states,mode="normal",debug=False,):
         #If mode = normal,  all movement possibilities, shape is almost-rectangle,lowest row can be shorter
         #If mode = fullrect, then the shape is a correct rectangle
         #For now it is not stochastic so pr(s',r |s,a)=1
         self.states = states
+        self.startstate=startstate
         self.actions = [0,1,2,3]
         self.rewards = rewards 
         self.debug=debug
