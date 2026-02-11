@@ -1,14 +1,13 @@
 import random
 import numpy as np
 class MCSolver:
-    def __init__(self,env,itrs,epsilon=0.1,discount=0.9,step_size=0.1):
+    def __init__(self,env,itrs,epsilon=0.1,discount=0.9):
         self.env=env
         self.itrs=itrs
         self.discount=discount
         self.epsilon=epsilon
         self.policy = [[0.25 for _ in env.actions] for _ in env.states]
         self.values = [[0 for _ in env.actions] for _ in env.states]
-        self.step_size=step_size
     def solve(self):
         for i in range(self.itrs):
             print(i)
@@ -47,3 +46,51 @@ class MCSolver:
             best_action = random.choice(best_actions)
             new[best_action]=1- self.epsilon + self.epsilon/len(self.env.actions)
             self.policy[ind] = new
+
+class MCSolverOffPolicy:
+    def __init__(self,env,itrs,epsilon=0.1,discount=0.9,step_size=0.1):
+        self.env=env
+        self.itrs=itrs
+        self.discount=discount
+        self.epsilon=epsilon
+        self.targetpolicy = [[0.25 for _ in env.actions] for _ in env.states]
+        self.behaviourpolicy = [[1/len(env.actions) for _ in env.actions]for _ in env.states]
+        self.values = [[0 for _ in env.actions] for _ in env.states]
+        self.c = [[0 for _ in env.actions] for _ in env.states]
+        self.step_size=step_size
+    def solve(self):
+        for i in range(self.itrs):
+            print(i)
+            episode = self.sample()
+            self.update_values(episode)
+    def action_selection(self,state):
+        return random.choices(self.env.actions,weights=self.behaviourpolicy[state])[0]
+    def sample(self):
+        state = self.env.startstate
+        episode=[]
+        while state not in self.env.terminal_states:
+            action = self.action_selection(state)
+            next_state,reward = self.env.transition(state,action)
+            transition = (state,action,reward)
+            episode.append(transition)
+            state=next_state
+        return episode
+    def update_values(self,sample):
+        G=0
+        W=1
+        for t,transition in enumerate(reversed(sample)):
+            state,action,reward=transition
+            G = reward + self.discount*G
+            self.c[state][action] += W
+            self.values[state][action] += W*(G-self.values[state][action])/self.c[state][action]
+            self.update_policy(state)
+            W *= self.targetpolicy[state][action]/self.behaviourpolicy[state][action]
+            if W ==0: break
+    def update_policy(self,state):
+        
+        new =[0 for _ in self.env.actions]
+        max_q = max(self.values[state])
+        best_actions = [action for action in self.env.actions if self.values[state][action] == max_q]
+        best_action = random.choice(best_actions)
+        new[best_action]=1
+        self.targetpolicy[state] = new
