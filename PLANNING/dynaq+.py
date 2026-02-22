@@ -1,15 +1,14 @@
 import random
 import numpy as np
 class DynaQ:
-    def __init__(self,env,itrs,n,step_size=0.1,discount=0.9,k=0.1):
+    def __init__(self,env,itrs,n,step_size=0.1,discount=0.9,k=0.1,epsilon=0.1):
         self.env=env
         self.itrs=itrs
         self.n=n
         self.step_size =step_size
         self.discount=discount
         self.k=k
-        self.policy =[[0.25 for _ in env.actions] for _ in env.states]
-        self.behavior_policy =[[0.25 for _ in env.actions] for _ in env.states]
+        self.epsilon = epsilon
         self.values =[[0 for _ in env.actions] for _ in env.states]
         self.model = [[() for _ in env.actions] for _ in env.states]
         self.seen =[]
@@ -46,15 +45,10 @@ class DynaQ:
                         self.values[s][a]+= self.step_size * (r+bonus -self.values[s][a])
                     else:
                         self.values[s][a]+= self.step_size * (r +bonus+ self.discount *max(self.values[ns])-self.values[s][a])
-                self.update_policy(state)
                 state=next_state
                 action=self.choose_behavior_action(next_state)
     def choose_behavior_action(self,state):
-        return random.choices(self.env.actions,self.behavior_policy[state])[0]
-    def update_policy(self,state):
-        
-        best_actions = [action for action in self.env.actions if self.values[state][action]==max(self.values[state])]
-        action = random.choice(best_actions)
-        new = [0 for _ in self.env.actions]
-        new[action]=1
-        self.policy[state] = new
+        r =random.random()
+        if r<self.epsilon:
+            return random.choice(self.env.actions)
+        return np.argmax(self.values(state))

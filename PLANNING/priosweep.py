@@ -1,20 +1,19 @@
 import random
 import numpy as np
 class PrioritySweep:
-    def __init__(self,env,itrs,n,step_size=0.1,discount=0.9,threshold = 0.1):
+    def __init__(self,env,itrs,n,step_size=0.1,discount=0.9,threshold = 0.1,epsilon = 0.1):
         self.env=env
         self.itrs=itrs
         self.step_size=step_size
         self.discount=discount
         self.n=n
+        self.epsilon = epsilon
         self.values = [[0 for _ in env.actions] for _ in env.states]
-        self.policy = [[0.25 for _ in env.actions] for _ in env.states]
         self.queue = {}
-        self.policy =[[0.25 for _ in env.actions] for _ in env.states]
-        self.behavior_policy =[[0.25 for _ in env.actions] for _ in env.states]
         self.model = [[() for _ in env.actions] for _ in env.states]
         self.threshold = threshold
         self.predecessors = {}
+        
     def solve(self):
         for itr in range(self.itrs):
             state = self.env.startstate
@@ -46,11 +45,8 @@ class PrioritySweep:
                 state= next_state
                 action = self.choose_behavior_action(state)
     def choose_behavior_action(self,state):
-        return random.choices(self.env.actions,self.behavior_policy[state])[0]
-    def update_policy(self,state):
-        
-        best_actions = [action for action in self.env.actions if self.values[state][action]==max(self.values[state])]
-        action = random.choice(best_actions)
-        new = [0 for _ in self.env.actions]
-        new[action]=1
-        self.policy[state] = new
+        r = random.random()
+        if r<self.epsilon:
+            return random.choice(self.env.actions)
+        return np.argmax(self.values[state])
+    
