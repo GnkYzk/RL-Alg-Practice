@@ -1,13 +1,24 @@
-from ENV.gridworld import Gridworld
-from DP.dp import DPMethodV,DPMethodQ
-from MC.mc import MCSolver,MCSolverOffPolicy
-ng=Gridworld([0,1,2,3,4,5,6,7,8,9],0,{0:0,1:0,2:0,3:0,4:-3,5:10,6:0,7:0,8:0,9:0},5,terminal_states=[4,5],debug=False)
-ng.add_maze_borders(0,5)
-ng.add_maze_borders(1,6)
-ng.add_maze_borders(2,7)
-solver =MCSolverOffPolicy(ng,10000)
-solver.solve()
-print("V values:")
-for s in ng.states:
-    for a in ng.actions:
-        print(s,a,solver.values[s][a])
+from DQN.dddqn import DDDQN
+import logging
+import gymnasium as gym
+from gymnasium.wrappers import RecordEpisodeStatistics, RecordVideo
+training_period = 250
+num_training_episodes = 10000
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+env = gym.make("CartPole-v1", render_mode="rgb_array")
+
+
+env = RecordVideo(
+    env,
+    video_folder="cartpole-training",
+    name_prefix="training",
+    episode_trigger=lambda x: x % training_period == 0 
+)
+env = RecordEpisodeStatistics(env)
+
+print(f"Starting training for {num_training_episodes} episodes")
+print(f"Videos will be recorded every {training_period} episodes")
+print(f"Videos saved to: cartpole-training/")
+agent = DDDQN(env,False,10000,128,10000,lr = 1e-4)
+agent.train()
+env.close()
