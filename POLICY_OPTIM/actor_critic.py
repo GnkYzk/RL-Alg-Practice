@@ -40,12 +40,9 @@ class ActorCritic:
         self.actor_optimizer = torch.optim.Adam(self.actormodel.parameters(),lr=lr)
         self.critic_optimizer = torch.optim.Adam(self.criticmodel.parameters(),lr=lr)
     def train(self):
-        episodes = []
         for i_episode in range(self.n_episodes):
-            print(i_episode)
             done = False
             state,info = self.env.reset()
-            rewards = []
             while not done:
                 
                 probs = self.actormodel(torch.tensor(state,dtype=torch.float32))
@@ -69,12 +66,4 @@ class ActorCritic:
                 self.critic_optimizer.zero_grad()
                 loss_critic.backward()
                 self.critic_optimizer.step()
-                rewards.append(reward)
                 state = next_state
-            episodes.append(sum(rewards))
-        plt.figure()
-        plt.plot(episodes)
-        plt.xlabel("Episode")
-        plt.ylabel("Loss")
-        plt.title("Total reward over Episodes")
-        plt.show()
