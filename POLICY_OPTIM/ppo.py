@@ -45,11 +45,9 @@ class PPO:
         self.actor_optimizer = torch.optim.Adam(self.actormodel.parameters(),lr=lr)
         self.critic_optimizer = torch.optim.Adam(self.criticmodel.parameters(),lr=lr)
     def train(self):
-        plott=[]
         for episode in range(self.n_episodes):
             
-            transitions ,episode_returns= self.rollout()
-            plott.append(np.mean(np.array(episode_returns)))
+            transitions= self.rollout()
             states,actions,rewards,dones,values,next_values,log_probs = map(torch.stack,zip(*transitions))
             advantages,returns = self.gae(rewards,dones,values,next_values)
             for _ in range(self.epochs):
@@ -67,12 +65,6 @@ class PPO:
                 self.critic_optimizer.zero_grad()
                 loss_critic.backward()
                 self.critic_optimizer.step()
-
-        plt.plot(plott)
-        plt.xlabel("Episode")
-        plt.ylabel("Return (sum of rewards)")
-        plt.title("PPO Training Performance")
-        plt.show()
     def gae(self,rewards,dones,values,next_values):
         advantages = torch.zeros_like(rewards)
         returns = torch.zeros_like(rewards)
@@ -89,8 +81,6 @@ class PPO:
     def rollout(self):
         state,info = self.env.reset()
         transitions=[]
-        return_=0
-        returns = []
         for i in range(self.rollout_n):
             with torch.no_grad():
                 probs =  self.actormodel(torch.tensor(state,dtype = torch.float32))
@@ -103,9 +93,6 @@ class PPO:
             return_ += reward
             done = True if terminated or truncated else False
             if done:
-                returns.append(return_)
-                return_=0
-            if done:
                 next_value = torch.tensor(0.0)
             else:
                 with torch.no_grad():
@@ -117,4 +104,4 @@ class PPO:
                 state,info = self.env.reset()
             else:
                 state= next_state
-        return transitions,returns
+        return transitions
