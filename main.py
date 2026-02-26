@@ -1,8 +1,8 @@
-from POLICY_OPTIM.actor_critic import ActorCritic
+from POLICY_OPTIM.ppo import PPO
 import logging
 import gymnasium as gym
 from gymnasium.wrappers import RecordEpisodeStatistics, RecordVideo
 env = gym.make("CartPole-v1")
-agent = ActorCritic(env,False,True,2000,lr = 1e-4)
+agent = PPO(env,False,True,200,lr = 1e-4)
 agent.train()
 env.close()
