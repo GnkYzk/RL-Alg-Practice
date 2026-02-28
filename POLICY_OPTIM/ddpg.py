@@ -30,7 +30,7 @@ class Policy(nn.Module):
     def forward(self,x):
         x = nn.ReLU()(self.fc1(x))
         x = self.fc2(x)
-        return x
+        return nn.Tanh()(x)
 
 
 class Ddpg:
