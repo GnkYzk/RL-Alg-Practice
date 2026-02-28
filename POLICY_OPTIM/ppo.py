@@ -32,7 +32,7 @@ class PPO:
         if discrete_action:
             self.action_n = env.action_space.n
         else:
-            action = env.observation_space.sample(1)
+            action = env.action_space.sample(1)
             self.action_n= len(action)
         self.actormodel = ActorModel(self.state_n,self.action_n)
         self.criticmodel= CriticModel(self.state_n)
